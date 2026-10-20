@@ -1,0 +1,11 @@
+services:
+  webproxy:
+    build: .
+    image: webproxy:latest
+    container_name: webproxy
+    restart: unless-stopped
+    ports:
+      - "8765:8765"
+    # 如需覆盖内嵌配置（如跳过内网自签证书校验、改 SSRF 策略），取消下面注释：
+    volumes:
+      - ./config.json:/app/config.json:ro

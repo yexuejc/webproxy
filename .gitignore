@@ -1,0 +1,41 @@
+# ===== 构建产物 / 二进制 =====
+webproxy
+webproxy.exe
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# ===== 调试日志 / 运行期产物 =====
+debug.log
+*.log
+chrome_err*.log
+
+# ===== 调试用散文件（抓取/探针/临时 HTML，非项目源码） =====
+bsz.js
+js_via_proxy.js
+dom.html
+dom2.html
+dom3.html
+dom4.html
+dom5.html
+dom_ws.html
+doc3.html
+doc5.html
+docnow.html
+rewritten.html
+rewritten2.html
+sub_doc.html
+
+# ===== 本地部署配置（保留示例，忽略真实配置） =====
+config.json
+
+# ===== 编辑器 / OS =====
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# 注意：vendor/ 刻意保留（offline Docker 构建依赖 go mod vendor）

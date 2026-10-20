@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web 代理</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  #bar { display: flex; gap: 8px; padding: 8px; background: #f3f4f6; border-bottom: 1px solid #d1d5db; }
+  #url { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+  #bar button { padding: 8px 16px; border: 0; border-radius: 6px; background: #2563eb; color: #fff; cursor: pointer; font-size: 14px; }
+  #view { width: 100%; height: calc(100vh - 56px); border: 0; background: #fff; }
+</style>
+</head>
+<body>
+<form id="bar" onsubmit="go(); return false;">
+  <input id="url" placeholder="输入要访问的 URL，例如 http://192.168.1.10:8080/" autofocus>
+  <button type="submit">访问</button>
+</form>
+<iframe id="view"></iframe>
+<script>
+function enc(s) {
+  var b = new TextEncoder().encode(s), bin = '';
+  for (var i = 0; i < b.length; i++) bin += String.fromCharCode(b[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function dec(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  var bin = atob(s), b = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) b[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(b);
+}
+// 子域名标签用十六进制编码 origin（浏览器会把主机名小写化，hex 小写无损）。
+function hexEnc(s) {
+  var b = new TextEncoder().encode(s), out = '';
+  for (var i = 0; i < b.length; i++) out += b[i].toString(16).padStart(2, '0');
+  return out;
+}
+// 把完整 URL 转成子域名反代地址：
+// http://192.168.0.107:5666/foo  →  http://<hex(origin)>.localhost:8765/foo?_wpframe=1
+// 浏览器原生把 *.localhost 解析到 127.0.0.1，因此本地零配置即可让 SPA 的绝对路径
+// import('/x')、fetch('/api') 正确落到子域名、被代理映射回目标（解决 fnOS 白屏）。
+function subURL(u) {
+  var uu = new URL(u);
+  var label = hexEnc(uu.protocol + '//' + uu.host); // 编码 origin (scheme://host:port)
+  var port = location.port;
+  var path = uu.pathname || '/';
+  return 'http://' + label + '.localhost:' + port + path + uu.search + '?_wpframe=1';
+}
+function go() {
+  var u = document.getElementById('url').value.trim();
+  if (!/^https?:\/\//i.test(u)) u = 'http://' + u;
+  // _wpframe=1: 告知服务端本次是 iframe 内加载，勿做顶层导航改道
+  document.getElementById('view').src = subURL(u);
+}
+// 支持 /?url=<base64url>：新标签经 302 进入时自动回填并加载
+(function () {
+  var q = new URLSearchParams(location.search).get('url');
+  if (!q) return;
+  try {
+    var full = dec(q);
+    document.getElementById('url').value = full;
+    document.getElementById('view').src = subURL(full);
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

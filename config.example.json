@@ -1,0 +1,17 @@
+{
+  "listen": ":8765",
+  "base_path": "/p/",
+  "insecure_skip_verify": false,
+  "ssrf": {
+    "mode": "blacklist",
+    "block_loopback": true,
+    "block_link_local": true,
+    "block_reserved": false,
+    "block_private": false,
+    "denied_ips": [],
+    "denied_protocols": ["file", "gopher", "ftp", "ftps", "dict", "tftp", "ldap", "sftp"],
+    "allowed_ips": [],
+    "allowed_domains": [],
+    "allowed_protocols": ["http", "https"]
+  }
+}
